@@ -27,14 +27,23 @@ html, body {
 }
 
 #side-panel-container {
-    width: 33%;
+    width: 25%;
+    max-width: 25%;
+    min-width: 25%;
+    border: 3px inset grey;
+    background-color: #f6f6f6;
+    border-radius: 15px;
 }
 
 #map-container {
     width: 100%;
+    border: 6px inset darkgreen;
+    border-radius: 15px;
+    margin-right: 7px;
+    background-color: #d3d3d3;
 }
 
-svg {
+svg#map {
     width: 100%;
     height: 100%;
 }
@@ -54,7 +63,8 @@ svg {
 }
 
 .filter-contents {
-    flex-grow: 1;
+    min-height: 90px;
+    /*align*/
 }
 
 .filter-title-container {
@@ -62,9 +72,81 @@ svg {
 }
 
 div {
-    border: .5px solid black;
+    /*border: .5px solid black;*/
 }
 
 *, *:before, *:after {
     box-sizing: border-box;
+}
+
+.filter-contents.icons {
+    padding: 2%;
+    display: flex;
+    flex-direction: row;
+    /*flex-wrap: wrap;*/
+    gap: 5px;
+    align-items: center;
+    align-content: center;
+    justify-content: space-evenly;
+    /*object-fit: contain;*/
+    /*overflow-y: hidden;*/
+    white-space: nowrap;
+}
+
+.icon-parent-container {
+    /*min-width: 60px;*/
+    /*max-width: 50px;*/
+    flex-grow: 1;
+    /*aspect-ratio: 1 / 1;*/
+    transition: all 1s ease-in-out;
+}
+
+.icon-parent {
+    border-radius: 50%;
+    /*margin: 2%;*/
+    /*width: 50px;*/
+    /*height: 50px;*/
+
+    border: 1px outset black;
+    /*flex-grow: 1;*/
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ff3131;
+}
+
+.icon-parent-container:hover {
+    z-index: 1;
+    transform: scale(1.05);
+    /*min-width: 70px;*/
+    /*max-width: 70px;*/
+}
+
+.icon-parent:hover {
+    filter: brightness(80%);
+}
+
+.icon {
+    height: 70%;
+    width: auto;
+    display: block;
+    /*filter: invert(100%);*/
+    /*transform: translateX(4px);*/
+}
+
+.icon-label {
+    font-size: 10px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    text-align: center;
+}
+
+.icon-disappear {
+    width: 0;
+    height: 0;
+    opacity: 0;
+    /*top: 50%;*/
+    /*left: 50%;*/
 }
