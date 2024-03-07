@@ -1,0 +1,162 @@
+<head>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://d3js.org/topojson.v3.min.js"></script>
+
+  <style>
+    .nhood-outline {
+      fill: none;
+      stroke: #006400;
+      stroke-width: 2px;
+    }
+
+    .nhood {
+      fill: #F0F0F0;
+      stroke: #4682B4;
+      stroke-width: 1px;
+    }
+
+    rect.handle,
+    rect.overlay {
+      display: none;
+    }
+  </style>
+</head>
+
+<svg id="map" height="700" width="900" style="background: #fff; margin-top:50px">
+  <g id="plot" height="700" width="700"></g>
+  <g id="minimap" width="200" height="200" transform="translate(699,1)">
+    <rect x="0" y="0" width="200" height="200" stroke="black" stroke-width="1" fill="white" opacity="1" />
+  </g>
+</svg>
+
+<script>
+
+  const plot = d3.select("svg g#plot");
+  const width = plot.attr("width");
+  const height = plot.attr("height");
+  const margin = { top: 5, right: 5, bottom: 35, left: 35 };
+  const chartWidth = width - margin.left - margin.right;
+  const chartHeight = height - margin.top - margin.bottom;
+  const chartArea = plot.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  plot.append("defs").append("clipPath")
+    .attr("id", "chartClip")
+    .append("rect").attr("x", 0)
+    .attr("y", 0)
+    .attr("width", chartWidth)
+    .attr("height", chartHeight);
+
+  chartArea.attr("clip-path", "url(#chartClip)");
+
+  function plotRestaurants(data, projection, nhoods) {
+    const jitterSize = 2;
+
+    chartArea.selectAll("circle")
+      .data(data)
+      .enter()
+      .append("circle")
+      .attr("cx", d => {
+        const [x, y] = projection([+d.longitude, +d.latitude]);
+        return x + (Math.random() - 0.5) * jitterSize;
+      })
+      .attr("cy", d => {
+        const [x, y] = projection([+d.longitude, +d.latitude]);
+        return y + (Math.random() - 0.5) * jitterSize;
+      })
+      .attr("r", "3")
+      .attr("opacity", 0.8)
+      .attr("fill", function (d) {
+        for (const nhood of nhoods.features) {
+          if (d3.geoContains(nhood, [+d.longitude, +d.latitude])) {
+            return "steelblue";
+          }
+        }
+        return "none";
+      });
+  }
+
+  const requestData = async () => {
+    const boston = await d3.json("boston.topo.json");
+    const restaurants = await d3.csv("yelp_boston.csv");
+
+    console.log(boston);
+    console.log(restaurants);
+
+    var nhoods = topojson.feature(boston, boston.objects.boston)
+    var nhoodsMesh = topojson.mesh(boston, boston.objects.boston);
+
+    var projection = d3.geoMercator().fitSize([width, height], nhoods);
+    var path = d3.geoPath().projection(projection);
+
+    let nhoodsPaths = chartArea.selectAll("path.nhood")
+      .data(nhoods.features)
+      .join("path")
+      .attr("class", "nhood")
+      .attr("d", path);
+
+    chartArea.append("path").datum(nhoodsMesh)
+      .attr("class", "nhood-outline")
+      .attr("d", path);
+
+    // 1. build a pan-zoom handler
+    let zoomExtent = [[0, 0], [chartWidth, chartHeight]];
+    let translateExtent = [[-100, -100], [chartWidth + 100, chartHeight + 100]];
+    var plotZoom = d3.zoom()
+      .extent(zoomExtent)
+      .translateExtent(translateExtent)
+      .scaleExtent([1, 10])
+      .on('zoom', (event) => {
+        chartArea.attr('transform', event.transform);
+        plot.selectAll("circle").attr("r", 3 / event.transform.k + "px");
+
+        chartArea.selectAll(".nhood-outline")
+          .style("stroke-width", 2 / event.transform.k + "px");
+
+        chartArea.selectAll(".nhood")
+          .style("stroke-width", 1 / event.transform.k + "px");
+      });
+
+    chartArea.call(plotZoom);
+
+    plotRestaurants(restaurants, projection, nhoods);
+
+    const minimap = d3.select("svg g#minimap");
+    const minimapMargin = { top: 4, right: 4, bottom: 4, left: 4 };
+    const minimapWidth = minimap.attr("width") - minimapMargin.left - minimapMargin.right;
+    const minimapHeight = minimap.attr("height") - minimapMargin.top - minimapMargin.bottom;
+    const minimapArea = minimap.append("g")
+      .attr("transform", "translate(" + minimapMargin.left + "," + minimapMargin.top + ")")
+      .attr("opacity", 0.5);
+
+    var minimapProjection = d3.geoMercator()
+      .fitSize([minimapWidth, minimapHeight], nhoods);
+    var minimapPath = d3.geoPath().projection(minimapProjection);
+
+    minimapArea.selectAll("path")
+      .data(nhoods.features)
+      .enter().append("path")
+      .attr("d", minimapPath)
+      .attr("class", "nhood")
+      .style("fill", "#CCC")
+      .style("stroke", "#333");
+
+    let brush = d3.brush()
+      .extent([[0, 0], [minimapWidth, minimapHeight]])
+      .on("brush", brushed);
+
+    minimapArea.append("g").attr("class", "brush").call(brush);
+
+    function brushed(event) {
+      const selection = event.selection;
+      if (!selection) return;
+    }
+
+    chartArea.call(plotZoom.transform, d3.zoomIdentity);
+  }
+
+  requestData();
+</script>
+
+</body>
+
+</html>
