@@ -176,9 +176,35 @@
     }
 
     function brushed(event) {
-      if (!event.sourceEvent) return;
+      let selection = event.selection;
+      if (selection) {
+        // Constrain the brush to the minimap dimensions
+        selection = selection.map(d => {
+          return [
+            Math.max(0, Math.min(d[0], minimapWidth)),
+            Math.max(0, Math.min(d[1], minimapHeight))
+          ];
+        });
 
+        // If the selection is outside the minimap bounds, reset it to the bounds
+        if (selection[0][0] === minimapWidth) {
+          selection[0][0] = minimapWidth - 1;
+        }
+        if (selection[1][0] === 0) {
+          selection[1][0] = 1;
+        }
+        if (selection[0][1] === minimapHeight) {
+          selection[0][1] = minimapHeight - 1;
+        }
+        if (selection[1][1] === 0) {
+          selection[1][1] = 1;
+        }
+
+        // Now set the brush selection to the constrained selection
+        d3.select(this).call(brush.move, selection);
+      }
     }
+
 
     chartArea.call(plotZoom.transform, d3.zoomIdentity);
 
