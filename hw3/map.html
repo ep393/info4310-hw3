@@ -21,35 +21,36 @@
     }
   </style>
 </head>
-
-<svg id="map" height="700" width="900" style="background: #fff; margin-top:50px">
-  <g id="plot" height="700" width="700"></g>
-  <g id="minimap" width="200" height="200" transform="translate(699,1)">
-    <rect x="0" y="0" width="200" height="200" stroke="black" stroke-width="1" fill="white" opacity="1" />
-  </g>
-</svg>
-
-<div id="tooltip"
-  style="position: absolute; text-align: left; width: auto; height: auto; padding: 10px; background: lightsteelblue; border: 0px; border-radius: 8px; pointer-events: none; opacity: 0;">
+<div id="map-svg-container">
+  <svg id="map" height="100%" width="100%" style="background: #fff">
+    <g id="plot" height="100%" width="100%"></g>
+    <g id="minimap" width="200" height="200" transform="translate(1,1)">
+      <rect x="0" y="0" width="200" height="200" stroke="black" stroke-width="1" fill="white" opacity="1"/>
+    </g>
+  </svg>
 </div>
+<!--<div id="tooltip"-->
+<!--  style="position: absolute; text-align: left; width: auto; height: auto; padding: 10px; background: lightsteelblue; border: 0px; border-radius: 8px; pointer-events: none; opacity: 0;">-->
+<!--</div>-->
 
 
 <script>
 
+  const parentDiv = d3.select("#map-svg-container")
   const plot = d3.select("svg g#plot");
-  const width = plot.attr("width");
-  const height = plot.attr("height");
+  const width = parentDiv.node().getBoundingClientRect().width
+  const height = parentDiv.node().getBoundingClientRect().height
   const margin = { top: 5, right: 5, bottom: 35, left: 35 };
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
   const chartArea = plot.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-  plot.append("defs").append("clipPath")
-    .attr("id", "chartClip")
-    .append("rect").attr("x", 0)
-    .attr("y", 0)
-    .attr("width", chartWidth)
-    .attr("height", chartHeight);
+  // plot.append("defs").append("clipPath")
+  //   .attr("id", "chartClip")
+  //   .append("rect").attr("x", 0)
+  //   .attr("y", 0)
+  //   .attr("width", chartWidth)
+  //   .attr("height", chartHeight);
 
   chartArea.attr("clip-path", "url(#chartClip)");
 
@@ -78,12 +79,27 @@
       .attr("fill", d => d.isInside ? "steelblue" : "none")
       .on('mouseover', function (event, d) {
         if (d.isInside) {
-          d3.select("#tooltip")
-            .style("opacity", 1)
-            .html(`Name: ${d.name}<br>Reviews: ${d.review_count}<br>Rating: ${d.rating}`)
-            .style("left", (event.pageX + 10) + "px")
-            .style("top", (event.pageY + 10) + "px");
+          tooltip = d3.selectAll("#tooltip")
+                  .style("opacity", 0)
+          tooltip.remove();
 
+          tooltip = d3.select("body").append("div")
+                  .style("opacity", 0)
+                  .attr("id", "tooltip")
+                  .style("position", "absolute")
+                  .style("text-align", "left")
+                  .style("width", "auto")
+                  .style("height", "auto")
+                  .style("padding", "10px")
+                  .style("background", "lightsteelblue")
+                  .style("border", "0px")
+                  .style("border-radius", "8px")
+                  .style("pointer-events", "none")
+                  .html(`Name: ${d.name}<br>Reviews: ${d.review_count}<br>Rating: ${d.rating}`)
+                  .style("left", (event.pageX + 10) + "px")
+                  .style("top", (event.pageY + 10) + "px");
+
+          tooltip.transition().style("opacity", 1)
           d3.select(this)
             .transition()
             .duration(150)
@@ -97,7 +113,10 @@
         }
       })
       .on('mouseout', function () {
-        d3.select("#tooltip").style("opacity", 0);
+        tooltip = d3.select("#tooltip")
+                .transition()
+                .style("opacity", 0)
+        tooltip.remove();
 
         circles.filter(d => d.isInside)
           .transition()
@@ -134,8 +153,8 @@
     let translateExtent = [[-100, -100], [chartWidth + 100, chartHeight + 100]];
     var plotZoom = d3.zoom()
       .extent(zoomExtent)
-      .translateExtent(translateExtent)
-      .scaleExtent([1, 10])
+      // .translateExtent(translateExtent)
+      .scaleExtent([.7, 10])
       .on('zoom', plotZoomed);
 
     chartArea.call(plotZoom);
@@ -189,30 +208,34 @@
     }
 
     function brushed(event) {
-      let selection = event.selection;
-      if (selection) {
-        selection = selection.map(d => {
-          return [
-            Math.max(0, Math.min(d[0], minimapWidth)),
-            Math.max(0, Math.min(d[1], minimapHeight))
-          ];
-        });
-
-        if (selection[0][0] === minimapWidth) {
-          selection[0][0] = minimapWidth - 1;
-        }
-        if (selection[1][0] === 0) {
-          selection[1][0] = 1;
-        }
-        if (selection[0][1] === minimapHeight) {
-          selection[0][1] = minimapHeight - 1;
-        }
-        if (selection[1][1] === 0) {
-          selection[1][1] = 1;
-        }
-
-        d3.select(this).call(brush.move, selection);
+      if (!event.sourceEvent) {
+        return
       }
+      let selection = event.selection;
+      if (!selection) {
+        return
+      }
+      selection = selection.map(d => {
+        return [
+          Math.max(0, Math.min(d[0], minimapWidth)),
+          Math.max(0, Math.min(d[1], minimapHeight))
+        ];
+      });
+
+      if (selection[0][0] === minimapWidth) {
+        selection[0][0] = minimapWidth - 1;
+      }
+      if (selection[1][0] === 0) {
+        selection[1][0] = 1;
+      }
+      if (selection[0][1] === minimapHeight) {
+        selection[0][1] = minimapHeight - 1;
+      }
+      if (selection[1][1] === 0) {
+        selection[1][1] = 1;
+      }
+
+      d3.select(this).call(brush.move, selection);
     }
 
     chartArea.call(plotZoom.transform, d3.zoomIdentity);
