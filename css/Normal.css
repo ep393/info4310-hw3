@@ -80,7 +80,7 @@ svg#map {
 }
 
 .filter-contents {
-    min-height: 90px;
+    /*min-height: 0px;*/
     /*align*/
 }
 
@@ -178,3 +178,21 @@ div {
     /*left: 50%;*/
 }
 
+#map-legend-container {
+    margin-top: 5px;
+    margin-left: 10px;
+    width: 100%;
+}
+
+#map-legend {
+    width: fit-content;
+    padding: 5px;
+    border-radius: 10px;
+    border: 1px solid grey;
+    font-family: monospace;
+}
+
+.legend-contents {
+    display: flex;
+    align-items: center;
+}

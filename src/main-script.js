@@ -1,5 +1,5 @@
-mapIframe = d3.select("iframe").node()
-
+let mapIframe = d3.select("iframe").node()
+let iframeDoc = mapIframe.contentDocument || mapIframe.contentWindow.document;
 const createCircleIcon = function (src, color) {
     return `<div class="icon-parent" style="background-color: ${color}">`
         + `<img class="icon" src=${src}>`
@@ -81,8 +81,8 @@ const createCuisineIcon = function (div, divID, category, color) {
         let iframeDoc = mapIframe.contentDocument || mapIframe.contentWindow.document;
         let circles = d3.select(iframeDoc).selectAll(".plot-circle")
 
-        d3.selectAll(".icon-parent").style("filter", "brightness(100%)")
-        d3.select(this).style("filter", "brightness(50%)")
+        d3.selectAll(".icon-parent").style("filter", "brightness(50%)")
+        d3.select(this).style("filter", "brightness(100%)")
 
         if (foodCategoriesTopLevel.includes(category)) {
             drawCuisineFilter(category, divID)
@@ -107,7 +107,7 @@ const createCuisineIcon = function (div, divID, category, color) {
 
 const drawCuisineFilter = function (categorySelection, divID) {
     const div = d3.select(divID)
-    console.log(categorySelection)
+    // console.log(categorySelection)
     // div.classed("icons-disappear-container", true)
 
     var n = 0;
@@ -179,7 +179,10 @@ drawCuisineFilter("default", "#cuisine-filter-container .filter-contents");
 
 const updateRatingFilter = function (value) {
     ratingSlider = d3.select("#rating-filter")
-    d3.select("#rating-value").text(value)
+    ratingText = d3.select("#rating-value")
+
+    ratingSlider.property("value", value)
+    ratingText.text(value)
 
     let iframeDoc = mapIframe.contentDocument || mapIframe.contentWindow.document;
     let circles = d3.select(iframeDoc).selectAll(".plot-circle")
@@ -191,3 +194,65 @@ const updateRatingFilter = function (value) {
     }).classed("rating-filter-out", false)
 
 }
+
+const updateDistanceFilter = async function (value) {
+    let distanceSlider = d3.select("#distance-filter")
+    let distanceText = d3.select("#distance-value")
+
+
+    distanceSlider.property("value", value)
+    distanceText.text(value)
+
+    let iframeDoc = mapIframe.contentDocument || mapIframe.contentWindow.document;
+    let circles = d3.select(iframeDoc).selectAll(".plot-circle")
+    let distanceIndicator = d3.select(iframeDoc).select("#distance-indicator")
+    let currentLocation = d3.select(iframeDoc).select(".special-circle")
+
+    let x = currentLocation.attr("cx")
+    let y = currentLocation.attr("cy")
+
+    distanceIndicator.attr("r", value)
+    circles.classed("distance-filter-out", true)
+
+    circles.filter(function (d) {
+        let dx = x - d3.select(this).attr("cx")
+        let dy = y - d3.select(this).attr("cy")
+        let dist = Math.sqrt(dx*dx + dy*dy)
+        return dist <= value;
+    }).classed("distance-filter-out", false)
+
+
+    distanceSlider.on("mouseover", function () {
+        distanceIndicator
+            .transition()
+            .attr("opacity", "40%")
+    }).on("mouseout", function () {
+        distanceIndicator
+            .transition()
+            .attr("opacity", "0%")
+
+    })
+}
+
+
+d3.select("iframe").on("load", function () {
+    updateDistanceFilter(400)
+
+    // let iframeDoc = this.contentDocument || this.contentWindow.document;
+    // console.log("HIIII")
+    // if (iframeDoc.readyState === 'complete') {
+    //     let distanceIndicator = d3.select(iframeDoc).select("#distance-indicator")
+    //     let distanceSlider = d3.select("#distance-filter")
+    //
+    //     distanceSlider.on("mouseover", function () {
+    //         distanceIndicator
+    //             .transition()
+    //             .attr("opacity", "40%")
+    //     }).on("mouseout", function () {
+    //         distanceIndicator
+    //             .transition()
+    //             .attr("opacity", "0%")
+    //
+    //     })
+    // }
+})

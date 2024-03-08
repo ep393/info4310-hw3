@@ -88,7 +88,7 @@
           tooltip = d3.selectAll("#tooltip")
                   .style("opacity", 0)
           tooltip.remove();
-          console.log(d)
+          // console.log(d)
           tooltip = d3.select("body").append("div")
                   .style("opacity", 0)
                   .attr("id", "tooltip")
@@ -168,6 +168,35 @@
     chartArea.call(plotZoom);
 
     plotRestaurants(restaurants, mainProjection, nhoods);
+
+    let latitude = 42.35638173170854
+    let longitude = -71.06375001646862
+    const coords = mainProjection([longitude, latitude]);
+
+
+    chartArea.append("circle")
+            .attr("cx", coords[0])
+            .attr("cy", coords[1])
+            .attr("r", 5)
+            .attr("fill", "green")
+            .attr("stroke", "black")
+            .attr("stroke-width", 1)
+            .classed("special-circle", true);
+
+    chartArea.append("circle")
+            .attr("id", "distance-indicator")
+            .attr("cx", coords[0])
+            .attr("cy", coords[1])
+            .attr("r", 400)
+            // .attr("visibility", "hidden")
+            .attr("fill", "green")
+            .attr("opacity", "0%")
+            .style("pointer-events", "none")
+            .attr("stroke", "black")
+            .attr("stroke-width", 5)
+            .classed("special-circle", true);
+
+
 
     const minimap = d3.select("svg g#minimap");
     const minimapMargin = { top: 4, right: 4, bottom: 4, left: 4 };

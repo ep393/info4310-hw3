@@ -18,14 +18,29 @@
         </div>
         <div id="side-panel-container" class="filters">
             <div id="filters-parent-container">
-                <div style="display: none" id="distance-filter-container" class="filter-container">
+                <div id="distance-filter-container" class="filter-container">
                     <div class="filter-title-reset-container">
                         <div class="filter-title-container">
                             DISTANCE FILTER
                         </div>
+                        <button type="button" onclick="updateDistanceFilter(400)" id="distance-filter-reset">Reset</button>
                     </div>
                     <div class="filter-contents">
-                        DISTANCE FILTER CONTEXTS
+                        <div class="filter-contents">
+                            <label>Distance from current location: </label>
+                            <input
+                                    type="range"
+                                    id="distance-filter"
+                                    class="rating"
+                                    value="400"
+                                    oninput="updateDistanceFilter(this.value)"
+                                    max="400"
+                                    step="5"
+                            />
+                            <!--                        <div class="icon-parent">-->
+                            <!--                            <img class="icon" src="assets/icons/food-types-icon.png">-->
+                            <!--                        </div>-->
+                        </div>
                     </div>
                 </div>
                 <div id="rating-filter-container" class="filter-container">
@@ -63,6 +78,23 @@
                     </div>
                     <div class="filter-contents"></div>
                 </div>
+            </div>
+        </div>
+    </div>
+    <div id="map-legend-container">
+        <div id="map-legend">
+            Legend:
+            <div class="legend-contents">
+                Current Location:
+                <svg width="25" height="25">
+                    <circle cx="13" cy="13" r="10" fill="green" stroke="black" stroke-width="1"></circle>
+                </svg>
+            </div>
+            <div class="legend-contents">
+                Restaurant:
+                <svg width="25" height="25">
+                    <circle cx="13" cy="13" r="5" fill="steelblue"></circle>
+                </svg>
             </div>
         </div>
     </div>
