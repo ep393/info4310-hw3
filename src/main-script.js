@@ -1,7 +1,4 @@
-var selections = {
-    // "
-}
-
+mapIframe = d3.select("iframe").node()
 
 const createCircleIcon = function (src, color) {
     return `<div class="icon-parent" style="background-color: ${color}">`
@@ -11,11 +8,22 @@ const createCircleIcon = function (src, color) {
 
 const createCuisineIcon = function (div, divID, category, color) {
     let src = foodCategoryIcons[category]
+    if (src == "") {
+        src = foodCategoryIcons["Unknown"]
+    }
 
-    iconParentDiv = div.append("div")
+    let categoriesForFilter = null
+    if (foodCategoriesTopLevel.includes(category)) {
+        categoriesForFilter = foodCategoryTopToBottom[category]
+    } else if (foodSubCategories.includes(category)) {
+        categoriesForFilter = foodCategorySubToBottom[category]
+    }
+
+    let iconParentDiv = div.append("div")
         .attr("class", "icon-parent-container")
 
-    iconDiv = iconParentDiv.append("div")
+    let iconDiv = iconParentDiv.append("div")
+
 
     iconDiv.attr("class", "icon-parent")
         .style("background-color", color)
@@ -28,9 +36,72 @@ const createCuisineIcon = function (div, divID, category, color) {
         .attr("class", "icon-label")
         .text(category)
 
+    iconDiv.on("mouseover", function () {
+        let iframeDoc = mapIframe.contentDocument || mapIframe.contentWindow.document;
+        let circles = d3.select(iframeDoc).selectAll(".plot-circle")
+        // console.log(circles)
+        circles
+            .each(function (d, i) {
+                d3.select(this)
+                    .transition()
+                    .style("fill", "grey")
+                    .style("opacity", .7)
+                    .attr("z-index", 0)
+            })
+            .filter(function(d) {
+                categories = d['categories_json'].toLowerCase()
+
+                return categoriesForFilter.some(subStr => categories.includes(subStr))
+                // console.log(categories)
+                // console.log(category)
+            })
+            .each(function () {
+                d3.select(this)
+                    .transition()
+                    .style("fill", "steelblue")
+                    .attr("z-index", 1)
+                    .style("opacity", 1)
+            })
+    })
+
+
+    iconDiv.on("mouseout", function () {
+        let iframeDoc = mapIframe.contentDocument || mapIframe.contentWindow.document;
+        let circles = d3.select(iframeDoc).selectAll(".plot-circle")
+        circles.each(function () {
+            d3.select(this)
+                .transition()
+                .style("opacity", 1)
+                .style("fill", "steelblue")
+                .attr("z-index", 0)
+        })
+    })
 
     iconDiv.on("click", function () {
-        drawCuisineFilter(category, divID)
+        let iframeDoc = mapIframe.contentDocument || mapIframe.contentWindow.document;
+        let circles = d3.select(iframeDoc).selectAll(".plot-circle")
+
+        d3.selectAll(".icon-parent").style("filter", "brightness(100%)")
+        d3.select(this).style("filter", "brightness(50%)")
+
+        if (foodCategoriesTopLevel.includes(category)) {
+            drawCuisineFilter(category, divID)
+            circles
+                .classed("cuisine-filter-out", true)
+                .filter(function (d) {
+                    categories = d['categories_json'].toLowerCase()
+                    return categoriesForFilter.some(subStr => categories.includes(subStr))
+                })
+                .classed("cuisine-filter-out", false)
+        } else if (foodSubCategories.includes(category)) {
+            circles
+                .classed("cuisine-filter-out", true)
+                .filter(function (d) {
+                    categories = d['categories_json'].toLowerCase()
+                    return categoriesForFilter.some(subStr => categories.includes(subStr))
+                })
+                .classed("cuisine-filter-out", false)
+        }
     })
 }
 
@@ -42,7 +113,6 @@ const drawCuisineFilter = function (categorySelection, divID) {
     var n = 0;
 
     if (categorySelection == "default") {
-
         div.selectAll(".icon-parent-container")
             .classed("icon-disappear", true)
             .remove()
@@ -53,16 +123,24 @@ const drawCuisineFilter = function (categorySelection, divID) {
             createCuisineIcon(div, divID, category, color)
             n++;
         }
+        let iframeDoc = mapIframe.contentDocument || mapIframe.contentWindow.document;
+        let circles = d3.select(iframeDoc).selectAll(".plot-circle")
+
+        circles.classed("cuisine-filter-out", false)
+
         const icons = d3.selectAll(".icon-parent-container")
         const totalWidth = parseInt(div.style('width'))
-        const expandRatio = 3
-        const initWidth = totalWidth / (n + (expandRatio - 1))
+        const totalheight = parseInt(div.style('height'))
+        const expandRatio = 1.5
+        const initWidth = totalWidth / 3 // / (n + (expandRatio - 1))
 
-        console.log(initWidth)
+        // console.log(initWidth)
         icons.each(function () {
             d3.select(this)
                 .style("min-width", `${initWidth}px`)
                 .style("max-width", `${initWidth}px`)
+                .style("min-height", `${initWidth}px`)
+                .style("max-height", `${initWidth}px`)
         })
     } else if (foodCategoriesTopLevel.includes(categorySelection)) {
         div.selectAll(".icon-parent-container")
@@ -71,20 +149,24 @@ const drawCuisineFilter = function (categorySelection, divID) {
         div.classed("icons", true)
         let categories = foodCategories[categorySelection]
         for (let category in categories) {
-            let color = "red" // colors["category3"][i]
+            let color = "rgba(255,10,10,0.41)" // colors["category3"][i]
             createCuisineIcon(div, divID, category, color)
             n++;
         }
         const icons = d3.selectAll(".icon-parent-container")
         const totalWidth = parseInt(div.style('width'))
-        const expandRatio = 3
-        const initWidth = totalWidth / (n + (expandRatio - 1))
+        const expandRatio = 1.5
+        const columns = 3;
+        const initWidth = totalWidth / (columns + (expandRatio - 1))
 
-        console.log(initWidth)
+        // console.log(initWidth)
         icons.each(function () {
             d3.select(this)
+                // .style("flex-basis", "50%")
                 .style("min-width", `${initWidth}px`)
                 .style("max-width", `${initWidth}px`)
+                .style("min-height", `${initWidth}px`)
+                .style("max-height", `${initWidth}px`)
         })
     } else {
         console.log("final level???")
@@ -95,30 +177,17 @@ const drawCuisineFilter = function (categorySelection, divID) {
 
 drawCuisineFilter("default", "#cuisine-filter-container .filter-contents");
 
+const updateRatingFilter = function (value) {
+    ratingSlider = d3.select("#rating-filter")
+    d3.select("#rating-value").text(value)
 
-// change!
-var drag = d3.drag()
-    .on("start", dragstarted)
-    .on("drag", dragged)
-    .on("end", dragended);
+    let iframeDoc = mapIframe.contentDocument || mapIframe.contentWindow.document;
+    let circles = d3.select(iframeDoc).selectAll(".plot-circle")
 
-function dragstarted(event, d) {
-    d3.select(this).raise().attr("stroke", "black");
+    circles.classed("rating-filter-out", true)
+
+    circles.filter(function (d) {
+        return parseFloat(d['rating']) >= value;
+    }).classed("rating-filter-out", false)
+
 }
-
-function dragged(event, d) {
-    d3.select(this).attr("cx", event.x).attr("cy", event.y);
-}
-
-
-
-function dragended(event, d) {
-    var dropZone = d3.select("svg#map").node().getBoundingClientRect();
-    d3.select(this).attr("stroke", null);
-    if (event.x >= dropZone.x && event.x <= dropZone.x + dropZone.width &&
-        event.y >= dropZone.y && event.y <= dropZone.y + dropZone.height) {
-        console.log("Pin dropped in the zone!");
-        // add drop pin logic if possible?
-    }
-}
-d3.select("#pin").call(drag);

@@ -10,7 +10,7 @@
 <div id="selections" data-selections="HELLO"></div>
 <div class="page-container">
     <div class="page-title-container">
-        <span> MAP APPLICATION PAGE TITLE </span>
+        <span id="page-title">Explore Boston's Best Eateries</span>
     </div>
     <div id="map-panel-container">
         <div id="map-container">
@@ -18,27 +18,48 @@
         </div>
         <div id="side-panel-container" class="filters">
             <div id="filters-parent-container">
-                <div id="distance-filter-container" class="filter-container">
-                    <div class="filter-title-container">
-                        DISTANCE FILTER
+                <div style="display: none" id="distance-filter-container" class="filter-container">
+                    <div class="filter-title-reset-container">
+                        <div class="filter-title-container">
+                            DISTANCE FILTER
+                        </div>
                     </div>
                     <div class="filter-contents">
                         DISTANCE FILTER CONTEXTS
                     </div>
                 </div>
                 <div id="rating-filter-container" class="filter-container">
-                    <div class="filter-title-container">
-                        RATING FILTER
+                    <div class="filter-title-reset-container">
+                        <div class="filter-title-container">
+                            RATING FILTER
+                        </div>
+                        <button type="button" onclick="updateRatingFilter(0)" id="rating-filter-reset">Reset</button>
                     </div>
                     <div class="filter-contents">
+                        <label>Filtered to at least <span id="rating-value">0</span>/5 stars:</label>
+                        <input
+                                type="range"
+                                id="rating-filter"
+                                class="rating"
+                                value="0"
+                                oninput="updateRatingFilter(this.value)"
+                                max="5"
+                                step=".5"
+                        />
 <!--                        <div class="icon-parent">-->
 <!--                            <img class="icon" src="assets/icons/food-types-icon.png">-->
 <!--                        </div>-->
                     </div>
                 </div>
                 <div id="cuisine-filter-container" class="filter-container">
-                    <div class="filter-title-container">
-                        CUISINE FILTER
+                    <div class="filter-title-reset-container">
+                        <div class="filter-title-container">
+                            CUISINE FILTER
+                        </div>
+                        <button type="button"
+                                onclick="drawCuisineFilter('default', '#cuisine-filter-container .filter-contents')"
+                                id="cuisine-filter-reset">Reset
+                        </button>
                     </div>
                     <div class="filter-contents"></div>
                 </div>

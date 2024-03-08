@@ -1,7 +1,7 @@
 <head>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="https://d3js.org/topojson.v3.min.js"></script>
-
+  <link rel="stylesheet" type="text/css" href="../css/Map-style.css">
   <style>
     .nhood-outline {
       fill: none;
@@ -21,14 +21,16 @@
     }
   </style>
 </head>
-<div id="map-svg-container">
-  <svg id="map" height="100%" width="100%" style="background: #fff">
-    <g id="plot" height="100%" width="100%"></g>
-    <g id="minimap" width="200" height="200" transform="translate(1,1)">
-      <rect x="0" y="0" width="200" height="200" stroke="black" stroke-width="1" fill="white" opacity="1"/>
-    </g>
-  </svg>
-</div>
+<body style="margin: 0px">
+  <div id="map-svg-container">
+    <svg id="map" height="100%" width="100%" style="background: #fff">
+      <g id="plot" height="100%" width="100%"></g>
+      <g id="minimap" width="200" height="200" transform="translate(1,1)">
+        <rect x="0" y="0" width="200" height="200" stroke="black" stroke-width="1" fill="white" opacity="1"/>
+      </g>
+    </svg>
+  </div>
+</body>
 <!--<div id="tooltip"-->
 <!--  style="position: absolute; text-align: left; width: auto; height: auto; padding: 10px; background: lightsteelblue; border: 0px; border-radius: 8px; pointer-events: none; opacity: 0;">-->
 <!--</div>-->
@@ -65,7 +67,10 @@
     let circles = viewport.selectAll("circle")
       .data(data)
       .enter()
+      .filter(function (d) {return d.isInside})
       .append("circle")
+      .attr("class", "plot-circle")
+      .classed("visible", true)
       .attr("cx", d => {
         const [x,] = projection([+d.longitude, +d.latitude]);
         return x + (Math.random() - 0.5) * jitterSize;
@@ -76,13 +81,14 @@
       })
       .attr("r", "3")
       .attr("opacity", 0.8)
-      .attr("fill", d => d.isInside ? "steelblue" : "none")
+      .style("fill", "steelblue")
       .on('mouseover', function (event, d) {
+        if (!d3.select(this).classed("visible")) {return}
         if (d.isInside) {
           tooltip = d3.selectAll("#tooltip")
                   .style("opacity", 0)
           tooltip.remove();
-
+          console.log(d)
           tooltip = d3.select("body").append("div")
                   .style("opacity", 0)
                   .attr("id", "tooltip")
@@ -110,9 +116,11 @@
             .transition()
             .duration(150)
             .style('opacity', 0.2);
+
         }
       })
       .on('mouseout', function () {
+        if (!d3.select(this).classed("visible")) {return}
         tooltip = d3.select("#tooltip")
                 .transition()
                 .style("opacity", 0)
@@ -130,8 +138,8 @@
     const boston = await d3.json("boston.topo.json");
     const restaurants = await d3.csv("yelp_boston.csv");
 
-    console.log(boston);
-    console.log(restaurants);
+    // console.log(boston);
+    // console.log(restaurants);
 
     var nhoods = topojson.feature(boston, boston.objects.boston)
     var nhoodsMesh = topojson.mesh(boston, boston.objects.boston);
@@ -189,7 +197,7 @@
 
     function plotZoomed({ transform }) {
       chartArea.attr('transform', transform);
-      plot.selectAll("circle")
+      plot.selectAll(".plot-circle")
         .attr("r", 3 / transform.k + "px");
 
       chartArea.selectAll(".nhood-outline, .nhood")
@@ -208,19 +216,18 @@
     }
 
     function brushed(event) {
-      if (!event.sourceEvent) {
-        return
-      }
+      if (!event.sourceEvent) return;
+
       let selection = event.selection;
-      if (!selection) {
-        return
-      }
+      if (!selection) return;
+
       selection = selection.map(d => {
         return [
           Math.max(0, Math.min(d[0], minimapWidth)),
           Math.max(0, Math.min(d[1], minimapHeight))
         ];
       });
+      d3.select(this).call(brush.move, selection);
 
       if (selection[0][0] === minimapWidth) {
         selection[0][0] = minimapWidth - 1;
@@ -235,16 +242,16 @@
         selection[1][1] = 1;
       }
 
-      d3.select(this).call(brush.move, selection);
     }
-
     chartArea.call(plotZoom.transform, d3.zoomIdentity);
+
 
   }
 
   requestData();
 </script>
-
+<script src="../src/variables.js"></script>
+<!--<script src="../src/main-script.js"></script>-->
 </body>
 
 </html>

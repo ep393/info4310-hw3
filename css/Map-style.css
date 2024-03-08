@@ -1,3 +1,3 @@
-/*svg#map {*/
-/*    */
-/*}*/
+.plot-circle.cuisine-filter-out, .plot-circle.rating-filter-out {
+    display: none;
+}
