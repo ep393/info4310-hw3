@@ -246,6 +246,9 @@
     }
 
     function brushed(event) {
+      if (sourceEvent === null) {
+        return;
+      }
       let selection = event.selection;
       if (selection) {
         selection = selection.map(d => {
