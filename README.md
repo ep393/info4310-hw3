@@ -1,5 +1,7 @@
 # Explore Boston's Best Eateries
 
+**Link**: https://ep393.github.io/info4310-hw3/
+
 ## Introduction
 This project explores a dataset comprising detailed information on restaurants in Boston. The dataset includes attributes such as the restaurant's name, Yelp page URL, review count, categories, average rating, sample review text, neighborhood, latitude, and longitude.
 
@@ -37,12 +39,5 @@ The development began with drafting simple sketches and evolved into a detailed 
 - **Distance Filter**: Intended as a grey overlay, simplified to an interactive slider due to time constraints.
 - **Search Bar and Interactive Pop-ups**: Planned but not implemented due to time limits.
 
-## Breakdown of Workload
-- **Emir Polat**: Focused on developing the interactive map, including mini-map and tooltip features.
-- **Joseph Greene**: Developed the side panel filters, dealing with category hierarchies and visual elements.
-
 ## Conclusion
 This project demonstrates effective collaboration and technical development in creating an interactive tool for exploring restaurant data. It highlights the importance of user-centered design in data visualization.
-
-## GitHub Repository
-[View Project on GitHub](https://github.com/username/repo-name)
